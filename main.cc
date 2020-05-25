@@ -29,6 +29,7 @@ int main()
 //  std::cout << "eigen jpg " << em << std::endl;
 //  Eigen::MatrixXd mu = em.block(0, 0, 3, kk);
   Eigen::MatrixXd mu(3, kk);
+//  mu << 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 50, 50, 50, 100, 100, 100;
   mu << 255, 0, 0, 0, 255, 0, 0, 0, 255;
   std::cout << "mu = " << mu << std::endl;
   Eigen::VectorXi gk = Eigen::VectorXi(nn);
@@ -73,17 +74,23 @@ int main()
       }
     }
   }
+//  std::cout << "eigen jpg " << em << std::endl;
 //  std::cout << "gk =" << gk << std::endl;
   std::cout << "mu =" << mu << std::endl;
   em.transposeInPlace();
 
+  Eigen::MatrixXi emi = em.cast <int> ();
+//  std::cout << "eigen jpg " << em << std::endl;
+
 // cvに戻す
   cv::Mat tmp;
-  cv::eigen2cv(em, tmp);
+  cv::eigen2cv(emi, tmp);
 
 // 3チャンネルに変換
   onech = onech.reshape(3, mat.rows);
   tmp = tmp.reshape(3, mat.rows);
+
+  std::cout << "tmp =" << tmp << std::endl;
 
   cv::namedWindow("sample", cv::WINDOW_AUTOSIZE);
   cv::imshow("sample", mat);
@@ -96,7 +103,7 @@ int main()
   cv::destroyAllWindows();
 
   cv::namedWindow("tmp", cv::WINDOW_AUTOSIZE);
-  cv::imshow("tmp", onech);
+  cv::imshow("tmp", tmp);
   cv::waitKey(0);
   cv::destroyAllWindows();
 
