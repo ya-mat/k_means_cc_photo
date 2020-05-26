@@ -10,6 +10,7 @@
 int main()
 {
   cv::Mat mat = cv::imread("sample.jpg", cv::IMREAD_COLOR);
+//  cv::Mat mat = cv::imread("sample.jpg", CV_8UC1);
 
 //  std::cout << "jpg " << mat << std::endl;
 
@@ -20,6 +21,7 @@ int main()
 // Eigenに変換
   Eigen::MatrixXd em;
   cv::cv2eigen(onech, em);
+//  cv::cv2eigen(mat, em);
 
 // Eigen側の処理
   const int kk = 3;
@@ -79,18 +81,25 @@ int main()
   std::cout << "mu =" << mu << std::endl;
   em.transposeInPlace();
 
-  Eigen::MatrixXi emi = em.cast <int> ();
+//  em = em.cast <int> ();
+
+//  Eigen::MatrixXi emi = ;
 //  std::cout << "eigen jpg " << em << std::endl;
 
 // cvに戻す
   cv::Mat tmp;
-  cv::eigen2cv(emi, tmp);
+//  cv::Mat tmp(mat.rows, mat.cols, CV_8UC1);
+//  cv::Mat tmp(mat.size(), mat.type());
+  cv::eigen2cv(em, tmp);
+//  cv::eigen2cv(emi, tmp);
 
 // 3チャンネルに変換
   onech = onech.reshape(3, mat.rows);
   tmp = tmp.reshape(3, mat.rows);
 
-  std::cout << "tmp =" << tmp << std::endl;
+//  std::cout << "tmp =" << tmp << std::endl;
+  std::cout << "mat.depth() = " << mat.depth() << std::endl;
+  std::cout << "tmp.depth() = " << tmp.depth() << std::endl;
 
   cv::namedWindow("sample", cv::WINDOW_AUTOSIZE);
   cv::imshow("sample", mat);
@@ -103,7 +112,7 @@ int main()
   cv::destroyAllWindows();
 
   cv::namedWindow("tmp", cv::WINDOW_AUTOSIZE);
-  cv::imshow("tmp", tmp);
+  cv::imshow("tmp", tmp/255);
   cv::waitKey(0);
   cv::destroyAllWindows();
 
