@@ -1,29 +1,44 @@
 #include <iostream>
+#include <fstream>
 #include <Eigen/Dense>
-#include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/eigen.hpp>
 
-//int main(int argc, const char* argv[])
 int main(){
   cv::Mat mat = cv::imread("sample.jpg", cv::IMREAD_COLOR);
+  if(mat.empty()){
+    std::cout << "There is no input file 'sample.jpg'" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  const int mr = mat.rows;
+  const int mc = mat.cols;
+  const int nn = mr*mc;
+
+  if(RAND_MAX < mr){
+    std::cout << "rand_max " << RAND_MAX << std::endl;
+    std::cout << "mat.rows " << mr << std::endl;
+    std::cout << "RAND_MAX < mr, error!" << std::endl;
+  }
 
 // 1チャンネルに変換し，Eigenに変換
   Eigen::MatrixXd em;
-  cv::cv2eigen(mat.reshape(1, mat.rows*mat.cols), em);
+  cv::cv2eigen(mat.reshape(1, mr*mc), em);
 
 // Eigen側の処理
-  const int kk = 3;
-  const int nn = mat.rows*mat.cols;
-  std::cout << "nn " << nn << std::endl;
-  em.transposeInPlace();
-//  Eigen::MatrixXd mu = em.block(0, 0, 3, kk);
-  Eigen::MatrixXd mu(3, kk);
-  mu << 255, 0, 0, 0, 255, 0, 0, 0, 255;
-//  mu << 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 50, 50, 50, 100, 100, 100;
-  std::cout << "mu = " << mu << std::endl;
+  int kk;
+  std::ifstream fr;
+  fr.open("input_kk", std::ios::in);
+  if(! fr.fail()){
+    fr >> kk;
+    std::cout << "kk = " << kk << std::endl;
+    fr.close();
+  }
+  else{
+    std::cout << "There is no input file 'input_kk'" << std::endl;
+    exit(EXIT_FAILURE);
+  }
   Eigen::VectorXi gk(nn);
   Eigen::VectorXi numk = Eigen::VectorXi::Zero(kk);
   Eigen::MatrixXd::Index minIndex;
@@ -32,6 +47,14 @@ int main(){
   int l;
   int sum_gk;
   int bef_sum_gk;
+
+  std::cout << "nn " << nn << std::endl;
+  em.transposeInPlace();
+  Eigen::MatrixXd mu(3, kk);
+  for(i = 0; i < kk; i++){
+    mu.col(i) = em.col((rand() % mr));
+  }
+//  std::cout << "mu = " << mu << std::endl; //dbg
 
   bef_sum_gk = 0;
   for(i = 0; i < 100; i++){
@@ -49,13 +72,18 @@ int main(){
 	  mu.col(l) += em.col(j);
 	}
       }
-      mu.col(l) /= static_cast<double> (numk(l));
+      if(numk(l) != 0){
+	mu.col(l) /= static_cast<double> (numk(l));
+      }
+      else{
+	mu.col(l) = em.col((rand() % mr));
+      }
     }
     sum_gk = gk.sum();
     if(bef_sum_gk == sum_gk) break;
     bef_sum_gk = sum_gk;
-    std::cout << "numk =" << numk << std::endl; //dbg
-    std::cout << "mu =" << mu << std::endl; //dbg
+//    std::cout << "numk =" << numk << std::endl; //dbg
+//    std::cout << "mu =" << mu << std::endl; //dbg
   }
 
   //色を減らす
@@ -66,7 +94,7 @@ int main(){
       }
     }
   }
-  std::cout << "mu =" << mu << std::endl;
+//  std::cout << "mu =" << mu << std::endl; //dbg
   em.transposeInPlace();
 
 // cvに戻す
@@ -74,7 +102,7 @@ int main(){
   cv::eigen2cv(em, tmp);
 
 // 3チャンネルに変換
-  tmp = tmp.reshape(3, mat.rows);
+  tmp = tmp.reshape(3, mr);
 
   cv::namedWindow("sample", cv::WINDOW_AUTOSIZE);
   cv::imshow("sample", mat);
